@@ -8,11 +8,12 @@
 package analyzer;
 
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 import static java.lang.System.out;
-import static analyzer.QuickSort.quickSort;
 
 public class TextAnalyzer {
     public static void main(String[] args) throws IOException {
@@ -21,41 +22,60 @@ public class TextAnalyzer {
 
         List<String> words = getAllWords(macBeth);
 
-        quickSort(words, 0, words.size() - 1);
+        HashMap<String, Integer> map = frequencyMap(words);
 
-        out.print(frequency(words));
-
+        topTwenty(map);
 
     }
 
-    public static HashMap<String, Integer> frequency(List<String> list) {
+    //Method to print top 20 words used in file
+    public static void topTwenty(HashMap<String, Integer> map) {
 
-        HashMap<String, Integer> freq = new HashMap<>();
-        int count = 1;
-
-        for (String str : list){
-            if (freq.containsKey(str)){
-                freq.computeIfPresent(str, (key, value) -> value + value);
-            }
-            else
-                count = 0;
-            freq.put(str, count);
-
+        //Create new list to store hashmap values
+        List<Integer> newList = new ArrayList<>();
+        for (Map.Entry<String, Integer> val : map.entrySet()) {
+            newList.add(val.getValue());
         }
 
+        //Sort Values in desc order
+        newList.sort(Collections.reverseOrder());
+
+        //Modify newList to a sublist containing top 20 values from hashmap
+        newList = newList.subList(0, 20);
+
+        //Loop through Hashmap and newList to find values matching key and print pairs
+        for (Integer value : newList) {
+            for (String key : map.keySet()) {
+                if (Objects.equals(map.get(key), value))
+                    out.println("\"" + key.toUpperCase() + "\" occurs " + value + " times.");
+            }
+        }
+    }
+
+    //Method to that returns Hashmap of words and how many times they are called, returns hashmap
+    public static HashMap<String, Integer> frequencyMap(List<String> list) {
+
+        HashMap<String, Integer> freq = new HashMap<>();
+
+        for (String str : list) {
+            Integer j = freq.get(str);
+            freq.put(str, (j == null) ? 1 : j + 1);
+        }
         return freq;
     }
 
+    //Method that scans file, removes punctuation and returns list or words
     public static List<String> getAllWords(File file) throws FileNotFoundException {
+
         Scanner scan = new Scanner(file);
 
         //List to store words
         List<String> allWords = new ArrayList<>();
 
+        //Scan for words, remove all punctuation and adds word to list to return
         String word;
-        //Scan for words and remove all punctuation
         while (scan.hasNext()) {
-            word = scan.next().toLowerCase().replaceAll("\\p{Punct}", "");
+            word = scan.next().toLowerCase().replaceAll("\\p{Punct}|\\s", "");
             allWords.add(word);
         }
         return allWords;
